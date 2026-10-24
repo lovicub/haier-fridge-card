@@ -31,6 +31,10 @@ The example entities are fictional. Select three temperature setpoint `number` e
 
 This beta has passed isolated Chromium checks at desktop and mobile viewport sizes. Full Home Assistant frontend compatibility and the visual editor lifecycle remain unverified; YAML configuration is recommended for this beta. HACS installation has not been validated. See [AUDIT.md](AUDIT.md) for details. No license has been selected.
 
+## Screenshot
+<img width="389" height="427" alt="image" src="https://github.com/user-attachments/assets/3565e32b-c2e6-4624-b448-e2de343bc072" />
+
+
 ## Isolated preview
 
 From the project directory, run:

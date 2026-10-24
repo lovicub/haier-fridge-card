@@ -1,23 +1,23 @@
-# Propozycja etapów publikacji
+# Suggested release roadmap
 
-## 1. Analiza i izolacja — bieżący etap
+## 1. Source review and isolated preview — complete
 
-Zachować oryginalny JS w lokalnym commicie; przygotować offline fixture, testy i AUDIT.md. Bez zmian działania lub wyglądu, bez GitHub, release i wyboru licencji. Wyniki zachowania nie są deklaracją zgodności z pełnym frontendem HA.
+The original JavaScript is preserved in the first local commit. An offline fixture, a small browser suite and the audit report are in place. The source review and initial checks do not establish compatibility with the full Home Assistant frontend. No GitHub repository or release was created, and no license was selected.
 
-## 2. Przenośna konfiguracja i stabilny edytor — proponowane następne zadanie
+## 2. Portable configuration and editor stability — next
 
-Najpierw zatwierdzić zakres zmian funkcjonalnych. Usunąć zależność stubu od modelowych identyfikatorów i dopasowania przypadkowych niemieckich nazw. Zapewnić jawny wybór encji z właściwej jednostki urządzenia; pozostawić aliasy kompatybilności. Obsłużyć obie kolejności `hass`/`setConfig` edytora i zachować jego DOM/fokus podczas aktualizacji HA. Dodać testy regresji odpowiadające wykrytym defektom. Nie zmieniać stylu karty przy tej pracy.
+Localization to English and German using Home Assistant's active language is implemented. Next, remove the model-specific entity-name assumptions from the stub and make entity selection understandable for users with different models and entity names. Keep the legacy entity aliases. Handle either `hass`/`setConfig` arrival order in the editor and preserve field state and focus during HA updates. Keep the current visual design during this work.
 
-Kryterium: brak wyjątku dla `hass` przed konfiguracją, brak utraty edytowanego pola przy aktualizacji, konfiguracja innego modelu bez ręcznego wyszukiwania modelowych nazw; istniejące testy karty nadal przechodzą.
+Acceptance criteria: no exception when `hass` arrives before config, no field loss on HA updates, and an understandable setup for different refrigerator models. Preserve the current English/German behavior checks.
 
-## 3. Semantyka danych i zgodność HA
+## 3. Data behavior and HA compatibility
 
-Ustalić komunikat częściowej dostępności, ścisłość walidacji temperatur i dat oraz odświeżanie czasu ostatniej zmiany. Potwierdzić docelową wersję HA, działanie `ha-entity-picker`, `ha-textfield`, `ha-switch`, ikon, `hass-more-info` i historii w odizolowanym pełnym frontendzie. Zweryfikować ograniczenia domen edytora i scenariusze dla innych integracji. Sprawdzić mobilny kontener 360–519 px (dwie kolumny), długie nazwy, klawiaturę, kontrast i reduced motion. Nie sterować urządzeniami.
+Decide how the card communicates partial availability; validate temperature values and timestamps; and decide whether the last-updated display should refresh without a new HA state. Verify the target HA version, editor controls, icons, `hass-more-info` and history navigation in an isolated full frontend. Check longer labels, keyboard access, contrast and reduced motion. Do not control real devices.
 
-## 4. Pakiet repozytorium do przeglądu
+## 4. Repository package for review
 
-Przygotować dokumentację użytkownika z fikcyjnym YAML, opisem encji, instalacji ręcznej, opcjami i zakresem zgodności; CHANGELOG, sensowną wersję wydania, CI oraz materiały prezentacyjne z fixture. Zweryfikować historię Git, pliki i artefakty pod kątem prywatności. Ustalić autorstwo i prawa do źródła, grafiki/marki oraz decyzję właściciela o licencji — licencja nie jest wybrana w tym etapie. Zdecydować, czy i kiedy przygotować HACS; nie deklarować zgodności bez walidacji wymagań.
+Prepare user documentation with a fictional YAML example, entity requirements, manual installation, options and compatibility scope. Add a changelog, release version, CI and preview images made from synthetic data. Review Git history and release files for private data. Confirm ownership and rights for the source, artwork and Haier branding; the project owner must choose a license. Decide whether to support HACS only after checking its current requirements.
 
-## 5. Publikacja dopiero jako osobne zadanie
+## 5. Publish as a separate, explicitly authorized task
 
-Po przeglądzie przygotowanego pakietu i wyraźnej autoryzacji utworzyć/podłączyć repozytorium GitHub, wysłać commity, następnie osobno przygotować tag i release. Przed publikacją potwierdzić zawartość artefaktu, wersję i wyniki wymaganych kontroli. Nie wykonywano tych czynności w etapie 1.
+After review and explicit authorization, create or connect the GitHub repository and push the approved commits. Prepare a release tag and GitHub release as a separate step. Recheck the published files, version and required checks first. Nothing has been published yet.

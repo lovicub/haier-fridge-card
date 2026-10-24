@@ -1,24 +1,26 @@
-# Haier Fridge Premium Card — przygotowanie wydania
+# Haier Fridge Premium Card
 
-Źródło: `haier-fridge-card.js`, deklarowana wersja 5.0.0. Na tym etapie zachowano oryginalny kod. [AUDIT.md](AUDIT.md) opisuje zachowanie, ograniczenia i wyniki; [ROADMAP.md](ROADMAP.md) proponuje kolejne etapy.
+A custom Home Assistant card for refrigerator target temperatures, humidity and door status. The card version declared in the source is **5.0.0**. Its built-in labels follow the Home Assistant language: German when the interface language is German, English otherwise. The original source is preserved in the first local Git commit.
 
-## Bezpieczny podgląd
+See [AUDIT.md](AUDIT.md) for the source review and test results, and [ROADMAP.md](ROADMAP.md) for suggested release steps.
 
-W katalogu projektu:
+## Isolated preview
+
+From the project directory, run:
 
 ```sh
 python3 preview/serve.py
 ```
 
-Otwórz `http://127.0.0.1:8123`. Zatrzymaj przez Ctrl+C. Opcjonalnie: `--port 8124`.
+Open `http://127.0.0.1:8123` in a browser. Stop the server with Ctrl+C; use `--port 8124` to choose another port. The page offers English and German language selection and synthetic entity scenarios.
 
-Serwer nasłuchuje wyłącznie na loopback i udostępnia pięć jawnie dozwolonych plików (w tym stronę główną). Nie udostępnia `.git`, raportów ani dowolnych ścieżek. Nie przekazuje żądań dalej. CSP blokuje połączenia, ramki, workery, formularze, obrazy i fonty sieciowe. Atrapy transportów blokują fetch/XHR/WebSocket/EventSource/beacon/WebRTC/WebTransport/workery. Dane są fikcyjne. `callService` tylko rejestruje argumenty; pozostałe API HA odrzucają wywołania. Przyciski karty zapisują zdarzenia w dzienniku zamiast otwierać prawdziwy HA. Ikony są lokalnymi symbolami zastępczymi; nie są reprodukcją ikon HA. Podgląd nie ładuje komponentów edytora HA.
+The preview server binds to loopback and serves only an explicit allowlist of local files. It does not proxy requests. A restrictive Content Security Policy blocks network connections, frames, workers, forms, and remote assets. Browser-side guards also block network APIs. All entities are fictional. A mock `callService` records calls; other HA APIs reject calls. Card details and history actions go to the on-page log rather than Home Assistant. Icons are placeholders, and the HA editor components are not loaded.
 
-Nie podawaj tokenów, adresów HA ani danych prawdziwych urządzeń. Nie otwieraj pliku HTML przez `file://`, bo pomija to nagłówki CSP serwera. Kod izolacji jest przeznaczony dla przejrzanego źródła, nie stanowi sandboxu do uruchamiania złośliwych skryptów.
+Keep Home Assistant addresses, tokens and real entity data out of the fixture. Open the preview through its local server so the isolation headers are applied.
 
-## Testy przeglądarkowe
+## Run the browser checks
 
-Wymagania: Python, Playwright i jego Chromium oraz lokalne czcionki systemowe. Instalacja zależności wymaga dostępu do Internetu; same testy są offline:
+Requirements: Python, Playwright, its Chromium browser, and system fonts. Installing dependencies or the browser needs Internet access; the test run itself is offline.
 
 ```sh
 python3 -m venv .venv
@@ -27,16 +29,4 @@ python3 -m venv .venv
 .venv/bin/python tests/run.py
 ```
 
-Na Linuksie mogą być wymagane biblioteki systemowe Chromium i fonty (np. DejaVu). Runner akceptuje `--executable /sciezka/do/chromium` lub zmienną `CHROMIUM_EXECUTABLE`. Nie trzeba uruchamiać serwera: przeglądarka otrzymuje lokalne bajty plików pod fikcyjną domeną, a każde inne żądanie jest przerywane. Service workers są wyłączone. Test izolacji poprzedza interakcje. Końcowy wynik i zrzuty trafiają do ignorowanego `test-results/`. Niezerowy kod wyjścia oznacza niepowodzenie. Zestaw obejmuje podstawowe scenariusze karty w dwóch viewportach; nie sprawdza pełnego edytora HA.
-
-Polecenie użyte w obecnym środowisku (istniejący runtime, bez instalowania zależności):
-
-```sh
-FONTCONFIG_FILE=/home/adam/.cache/aigosmart-v014b3/fonts.conf \
-LD_LIBRARY_PATH=/home/adam/.cache/aigosmart-v014b3/libs/root/usr/lib/x86_64-linux-gnu \
-PYTHONPATH=/home/adam/.cache/aigosmart-v014b3/runtime \
-/home/adam/projects/aigosmart/.venv/bin/python tests/run.py \
-  --executable /home/adam/.cache/aigosmart-v014b3/browsers/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell
-```
-
-Te ścieżki dotyczą wyłącznie narzędzi lokalnego środowiska. W typowej instalacji użyj polecenia `.venv/bin/python tests/run.py`.
+On Linux, Chromium system libraries and fonts such as DejaVu may also be required. Use `--executable /path/to/chromium` or set `CHROMIUM_EXECUTABLE` when Chromium is installed elsewhere. The runner serves inspected local file bytes under a virtual fixture origin, aborts every other request and disables service workers. It checks a small set of card behaviors at desktop and mobile viewport sizes; it does not test a physical phone or the full HA editor. Results and screenshots are written to the ignored `test-results/` directory. A nonzero exit code indicates a failed check.

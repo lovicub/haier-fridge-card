@@ -1,3 +1,36 @@
+const HFC_TRANSLATIONS = {
+  en: {
+    defaultTitle: 'Haier Fridge', model: 'Model',
+    fridge: 'Fridge · Setpoint', myZone: 'My Zone · Setpoint',
+    freezer: 'Freezer · Setpoint', humidity: 'Humidity', door: 'Door',
+    cooling: 'Cooling status', noData: 'No data', connected: 'Connected',
+    doorOpen: 'Door open', doorClosed: 'Door closed', doorUnknown: 'Door status unknown',
+    open: 'Open', closed: 'Closed', unavailable: 'Unknown',
+    lastUpdated: 'Last updated', history: 'View history',
+    precisionCooling: 'PRECISION COOLING', title: 'Title',
+    fridgeTarget: 'Fridge target temperature', myZoneTarget: 'My Zone target temperature',
+    freezerTarget: 'Freezer target temperature', doorEntity: 'Fridge door',
+    animations: 'Animations', showHistory: 'Show history', showLastUpdated: 'Show last updated',
+    justNow: 'Just now', minuteAgo: '1 minute ago', minutesAgo: (n) => `${n} min. ago`,
+    hourAgo: '1 hour ago', hoursAgo: (n) => `${n} hr. ago`, daysAgo: (n) => `${n} days ago`,
+  },
+  de: {
+    defaultTitle: 'Haier Kühlschrank', model: 'Modell',
+    fridge: 'Kühlschrank · Soll', myZone: 'My Zone · Soll',
+    freezer: 'Gefrierfach · Soll', humidity: 'Luftfeuchtigkeit', door: 'Tür',
+    cooling: 'Kühlstatus', noData: 'Keine Daten', connected: 'Verbunden',
+    doorOpen: 'Tür offen', doorClosed: 'Tür geschlossen', doorUnknown: 'Türstatus unbekannt',
+    open: 'Geöffnet', closed: 'Geschlossen', unavailable: 'Unbekannt',
+    lastUpdated: 'Letzte Aktualisierung', history: 'Verlauf anzeigen',
+    precisionCooling: 'PRÄZISE KÜHLUNG', title: 'Titel',
+    fridgeTarget: 'Zieltemperatur Kühlschrank', myZoneTarget: 'Zieltemperatur My Zone',
+    freezerTarget: 'Zieltemperatur Gefrierschrank', doorEntity: 'Tür Kühlschrank',
+    animations: 'Animationen', showHistory: 'Verlauf anzeigen', showLastUpdated: 'Letzte Aktualisierung',
+    justNow: 'Gerade eben', minuteAgo: 'Vor 1 Minute', minutesAgo: (n) => `Vor ${n} Min.`,
+    hourAgo: 'Vor 1 Stunde', hoursAgo: (n) => `Vor ${n} Std.`, daysAgo: (n) => `Vor ${n} Tagen`,
+  },
+};
+
 /*
  * Haier Fridge Premium Card v5.0.0
  * Vector edition. Self-contained SVG/CSS; no external assets.
@@ -14,7 +47,9 @@ class HaierFridgeCard extends HTMLElement {
 
     return {
       type: 'custom:haier-fridge-card',
-      title: 'Haier Fridge',
+      title: String(hass?.language || '').toLowerCase().startsWith('de')
+        ? 'Haier Kühlschrank'
+        : 'Haier Fridge',
       model: 'HDPW5620ANPD',
       entity_fridge_target:
         find('zieltemperatur', 'kuhlschrank') ||
@@ -38,9 +73,10 @@ class HaierFridgeCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config) throw new Error('Brak konfiguracji karty');
+    if (!config) throw new Error('Card configuration is required');
+    this._hasConfiguredTitle = Object.prototype.hasOwnProperty.call(config, 'title') &&
+      !['Haier Fridge', 'Haier Kühlschrank'].includes(config.title);
     this.config = {
-      title: 'Haier Fridge',
       model: 'HDPW5620ANPD',
       show_history_button: true,
       show_last_updated: true,
@@ -52,9 +88,11 @@ class HaierFridgeCard extends HTMLElement {
   }
 
   set hass(hass) {
+    const previousLanguage = this._language();
     this._hass = hass;
     if (!this.config) return;
     if (!this._rendered) this.render();
+    else if (previousLanguage !== this._language()) this.render();
     else this._updateDynamic();
   }
 
@@ -95,6 +133,16 @@ class HaierFridgeCard extends HTMLElement {
 
   _state(entityId) {
     return entityId && this._hass?.states?.[entityId];
+  }
+
+  _language() {
+    return String(this._hass?.language || 'en').toLowerCase().split(/[-_]/)[0] === 'de'
+      ? 'de'
+      : 'en';
+  }
+
+  _text(key) {
+    return HFC_TRANSLATIONS[this._language()][key];
   }
 
   _value(entityId, fallback = '–') {
@@ -157,21 +205,21 @@ class HaierFridgeCard extends HTMLElement {
   _updated(entityId) {
     if (!this.config?.show_last_updated) return '';
     const timestamp = this._state(entityId)?.last_updated;
-    if (!timestamp) return 'Keine Daten';
+    if (!timestamp) return this._text('noData');
 
     const minutes = Math.floor(
       Math.max(0, Date.now() - new Date(timestamp).getTime()) / 60000,
     );
 
-    if (minutes < 1) return 'Gerade eben';
-    if (minutes === 1) return 'Vor 1 Minute';
-    if (minutes < 60) return `Vor ${minutes} Min.`;
+    if (minutes < 1) return this._text('justNow');
+    if (minutes === 1) return this._text('minuteAgo');
+    if (minutes < 60) return this._text('minutesAgo')(minutes);
 
     const hours = Math.floor(minutes / 60);
-    if (hours === 1) return 'Vor 1 Stunde';
-    if (hours < 24) return `Vor ${hours} Std.`;
+    if (hours === 1) return this._text('hourAgo');
+    if (hours < 24) return this._text('hoursAgo')(hours);
 
-    return `Vor ${Math.floor(hours / 24)} Tagen`;
+    return this._text('daysAgo')(Math.floor(hours / 24));
   }
 
   _infoTile(name, value, icon, tone, entityId) {
@@ -199,6 +247,9 @@ class HaierFridgeCard extends HTMLElement {
       this.config.entity_humidity || this.config.humidity_entity;
     const doorEntity =
       this.config.entity_door_fridge || this.config.door_entity;
+    const cardTitle = this._hasConfiguredTitle
+      ? this.config.title
+      : this._text('defaultTitle');
 
     this.innerHTML = `
       <ha-card class="hfc-card">
@@ -210,7 +261,7 @@ class HaierFridgeCard extends HTMLElement {
           </div>
 
           <div class="header-copy">
-            <div class="title">${this._escape(this.config.title)}</div>
+          <div class="title">${this._escape(cardTitle)}</div>
             <div class="subtitle">
               <i></i>
               <span class="online-text">Online</span>
@@ -222,17 +273,17 @@ class HaierFridgeCard extends HTMLElement {
 
         <section class="hero">
           <div class="visual-wrap">
-            <div class="visual-caption">PRECISION COOLING <span>${this._escape(this.config.model)}</span></div>
+            <div class="visual-caption">${this._text('precisionCooling')} <span>${this._escape(this.config.model)}</span></div>
             ${this._fridgeSVG()}
-            <div class="visual-legend"><i></i><span class="visual-status">Kühlstatus</span></div>
+            <div class="visual-legend"><i></i><span class="visual-status">${this._text('cooling')}</span></div>
           </div>
 
           <div class="info-column">
-            ${this._infoTile('Kühlschrank · Soll', '–', 'mdi:thermometer', 'blue', fridgeEntity)}
-            ${this._infoTile('My Zone · Soll', '–', 'mdi:leaf', 'green', myZoneEntity)}
-            ${this._infoTile('Gefrierfach · Soll', '–', 'mdi:snowflake', 'purple', freezerEntity)}
-            ${this._infoTile('Luftfeuchtigkeit', '–', 'mdi:water-percent', 'cyan', humidityEntity)}
-            ${this._infoTile('Tür', '–', 'mdi:door-closed', 'amber', doorEntity)}
+            ${this._infoTile(this._text('fridge'), '–', 'mdi:thermometer', 'blue', fridgeEntity)}
+            ${this._infoTile(this._text('myZone'), '–', 'mdi:leaf', 'green', myZoneEntity)}
+            ${this._infoTile(this._text('freezer'), '–', 'mdi:snowflake', 'purple', freezerEntity)}
+            ${this._infoTile(this._text('humidity'), '–', 'mdi:water-percent', 'cyan', humidityEntity)}
+            ${this._infoTile(this._text('door'), '–', 'mdi:door-closed', 'amber', doorEntity)}
           </div>
         </section>
 
@@ -240,8 +291,8 @@ class HaierFridgeCard extends HTMLElement {
           <div class="updated-block">
             <ha-icon icon="mdi:clock-outline"></ha-icon>
             <span>
-              <small>Letzte Aktualisierung</small>
-              <b class="updated-value">Keine Daten</b>
+              <small>${this._text('lastUpdated')}</small>
+              <b class="updated-value">${this._text('noData')}</b>
             </span>
           </div>
 
@@ -250,7 +301,7 @@ class HaierFridgeCard extends HTMLElement {
               ? `
                 <button class="history-button" data-history="${this._escape(fridgeEntity || '')}">
                   <ha-icon icon="mdi:chart-bar"></ha-icon>
-                  <span>Verlauf anzeigen</span>
+                  <span>${this._text('history')}</span>
                   <ha-icon class="history-arrow" icon="mdi:chevron-right"></ha-icon>
                 </button>
               `
@@ -311,21 +362,42 @@ class HaierFridgeCard extends HTMLElement {
     card.classList.toggle('door-unknown', !doorKnown);
     card.classList.toggle('is-offline', !available);
     card.classList.toggle('no-animation', this.config.animate === false);
-    this.querySelector('.online-text').textContent = !available ? 'Keine Daten' : doorKnown && doorOpen ? 'Tür offen' : 'Verbunden';
-    this.querySelector('.visual-status').textContent = !doorKnown ? 'Türstatus unbekannt' : doorOpen ? 'Tür geöffnet' : 'Tür geschlossen';
+    this.querySelector('.online-text').textContent = !available
+      ? this._text('noData')
+      : doorKnown && doorOpen ? this._text('doorOpen') : this._text('connected');
+    this.querySelector('.visual-status').textContent = !doorKnown
+      ? this._text('doorUnknown')
+      : doorOpen ? this._text('doorOpen') : this._text('doorClosed');
     this.querySelector('.updated-block').hidden = this.config.show_last_updated === false;
-    this.querySelector('.fridge-svg').setAttribute('aria-label', !doorKnown ? 'Kühlschrank, Türstatus unbekannt' : doorOpen ? 'Kühlschrank mit offener Tür' : 'Kühlschrank mit geschlossener Tür');
-    const temp = (value, entity) => Number.isFinite(value) ? `${value.toFixed(1)} ${this._unit(entity, '°C')}` : '–';
+    this.querySelector('.fridge-svg').setAttribute(
+      'aria-label',
+      !doorKnown
+        ? `${this._text('defaultTitle')}, ${this._text('doorUnknown')}`
+        : `${this._text('defaultTitle')}, ${this._text(doorOpen ? 'doorOpen' : 'doorClosed')}`,
+    );
+    const formatter = new Intl.NumberFormat(this._language() === 'de' ? 'de-DE' : 'en-US', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+    const temp = (value, entity) => Number.isFinite(value)
+      ? `${formatter.format(value)} ${this._unit(entity, '°C')}`
+      : '–';
 
     const tiles = this.querySelectorAll('.info-tile');
     if (tiles.length >= 5) {
       tiles[0].querySelector('b').textContent = temp(fridge, fridgeEntity);
       tiles[1].querySelector('b').textContent = temp(myZone, myZoneEntity);
       tiles[2].querySelector('b').textContent = temp(freezer, freezerEntity);
-      tiles[3].querySelector('b').textContent = humidity === '–' ? '–' : `${humidity} ${humidityUnit}`;
-      tiles[4].querySelector('b').textContent = !doorKnown ? 'Unbekannt' : doorOpen
-        ? 'Geöffnet'
-        : 'Geschlossen';
+      const humidityDisplay = this._language() === 'de' &&
+        /^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(String(humidity))
+        ? String(humidity).replace('.', ',')
+        : humidity;
+      tiles[3].querySelector('b').textContent = humidity === '–'
+        ? '–'
+        : `${humidityDisplay} ${humidityUnit}`;
+      tiles[4].querySelector('b').textContent = !doorKnown
+        ? this._text('unavailable')
+        : this._text(doorOpen ? 'open' : 'closed');
       tiles[4]
         .querySelector('ha-icon')
         .setAttribute(
@@ -345,7 +417,7 @@ class HaierFridgeCard extends HTMLElement {
     const bottle = (x,y,c,h=75) => `<g transform="translate(${x} ${y})"><path d="M8 0h10v18q0 6 7 16v${h-34}q0 5-5 5H6q-5 0-5-5V34q7-10 7-16Z" fill="${c}" fill-opacity=".7" stroke="#addef9" stroke-opacity=".55"/><path d="M6 39v${h-45}M11 9v15" stroke="#d7f4ff" opacity=".65"/><rect x="7" y="-3" width="12" height="6" rx="2" fill="#8bacc6"/><path d="M2 47h22v20H2Z" fill="#081d36" opacity=".5"/></g>`;
     const grapes = Array.from({length:15},(_,i)=>`<circle cx="${180+(i%5)*8}" cy="${211-Math.floor(i/5)*8}" r="6.5" fill="${['#605790','#494578','#7970a3'][i%3]}" stroke="#bbaaf5" stroke-opacity=".2"/>`).join('');
     const greens = Array.from({length:9},(_,i)=>`<ellipse cx="${181+(i%5)*23}" cy="${466+Math.floor(i/5)*19}" rx="17" ry="14" fill="${['#376b58','#518568','#294e51'][i%3]}" stroke="#89ba8a" stroke-opacity=".3"/>`).join('');
-    return `<svg class="fridge-svg" viewBox="0 0 480 780" role="img" aria-label="Kühlschrank" xmlns="http://www.w3.org/2000/svg">
+    return `<svg class="fridge-svg" viewBox="0 0 480 780" role="img" aria-label="${this._escape(this._text('defaultTitle'))}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="${id}-side" x1="0" x2="1"><stop stop-color="#101725"/><stop offset=".5" stop-color="#383e51"/><stop offset="1" stop-color="#161e30"/></linearGradient>
         <linearGradient id="${id}-metal" x1="0" y1="0" x2="1" y2=".25"><stop stop-color="#7b8293"/><stop offset=".13" stop-color="#3f485c"/><stop offset=".42" stop-color="#8a91a0"/><stop offset=".64" stop-color="#535b6c"/><stop offset="1" stop-color="#242d41"/></linearGradient>
@@ -433,6 +505,16 @@ class HaierFridgeCard extends HTMLElement {
 }
 
 class HaierFridgeCardEditor extends HTMLElement {
+  _language() {
+    return String(this._hass?.language || 'en').toLowerCase().split(/[-_]/)[0] === 'de'
+      ? 'de'
+      : 'en';
+  }
+
+  _text(key) {
+    return HFC_TRANSLATIONS[this._language()][key];
+  }
+
   setConfig(config) {
     this.config = config || {};
     this.render();
@@ -470,6 +552,9 @@ class HaierFridgeCardEditor extends HTMLElement {
   render() {
     if (!this._hass) return;
     const config = this.config || {};
+    const title = ['Haier Fridge', 'Haier Kühlschrank'].includes(config.title)
+      ? this._text('defaultTitle')
+      : config.title || this._text('defaultTitle');
 
     this.innerHTML = `
       <div class="editor">
@@ -479,27 +564,27 @@ class HaierFridgeCardEditor extends HTMLElement {
           .row{display:flex;align-items:center;justify-content:space-between}
         </style>
 
-        <ha-textfield data-key="title" label="Titel" value="${this._escape(config.title || 'Haier Fridge')}"></ha-textfield>
-        <ha-textfield data-key="model" label="Modell" value="${this._escape(config.model || 'HDPW5620ANPD')}"></ha-textfield>
+        <ha-textfield data-key="title" label="${this._text('title')}" value="${this._escape(title)}"></ha-textfield>
+        <ha-textfield data-key="model" label="${this._text('model')}" value="${this._escape(config.model || 'HDPW5620ANPD')}"></ha-textfield>
 
-        ${this._picker('entity_fridge_target', 'Zieltemperatur Kühlschrank', 'number')}
-        ${this._picker('entity_my_zone_target', 'Zieltemperatur My Zone', 'number')}
-        ${this._picker('entity_freezer_target', 'Zieltemperatur Gefrierschrank', 'number')}
-        ${this._picker('entity_humidity', 'Luftfeuchtigkeit', 'sensor')}
-        ${this._picker('entity_door_fridge', 'Tür Kühlschrank', 'binary_sensor')}
+        ${this._picker('entity_fridge_target', this._text('fridgeTarget'), 'number')}
+        ${this._picker('entity_my_zone_target', this._text('myZoneTarget'), 'number')}
+        ${this._picker('entity_freezer_target', this._text('freezerTarget'), 'number')}
+        ${this._picker('entity_humidity', this._text('humidity'), 'sensor')}
+        ${this._picker('entity_door_fridge', this._text('doorEntity'), 'binary_sensor')}
 
         <div class="row">
-          <span>Animationen</span>
+          <span>${this._text('animations')}</span>
           <ha-switch data-key="animate" ${config.animate !== false ? 'checked' : ''}></ha-switch>
         </div>
 
         <div class="row">
-          <span>Verlauf anzeigen</span>
+          <span>${this._text('showHistory')}</span>
           <ha-switch data-key="show_history_button" ${config.show_history_button !== false ? 'checked' : ''}></ha-switch>
         </div>
 
         <div class="row">
-          <span>Letzte Aktualisierung</span>
+          <span>${this._text('showLastUpdated')}</span>
           <ha-switch data-key="show_last_updated" ${config.show_last_updated !== false ? 'checked' : ''}></ha-switch>
         </div>
       </div>

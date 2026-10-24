@@ -29,6 +29,7 @@ def main():
             probe.close();blocked.clear()
             page=context.new_page();page.set_default_timeout(5000);page.on('pageerror',lambda e:errors.append(str(e)))
             page.goto('http://fixture.invalid/');page.wait_for_selector('.info-tile')
+            page.screenshot(path=str(OUT/f'{profile}.png'),full_page=True)
             def check(case,fn):
                 try:fn();record={'profile':profile,'case':case,'status':'passed'}
                 except Exception as e:
@@ -37,7 +38,7 @@ def main():
                 records.append(record);print(json.dumps(record,ensure_ascii=False),flush=True)
             def eq(actual,expected):assert actual==expected,f'{actual!r} != {expected!r}'
             def setup(name='normal'):
-                page.evaluate('(name)=>{fixture.card.setConfig(fixture.config);fixture.scenario(name);fixture.reset();}',name)
+                page.evaluate('(name)=>{document.querySelector("#language").value="en";fixture.card.setConfig(fixture.config);fixture.scenario(name,"en");fixture.reset();}',name)
             def values():return page.locator('.info-tile b').all_text_contents()
             def safe():
                 eq(page.evaluate('blockedTransports.length'),0)
@@ -45,22 +46,47 @@ def main():
                 eq(page.evaluate('blockedTransports.length'),9);eq(blocked,[])
             check('SAFE',safe)
             def normal():
-                setup();eq(values(),['4.0 °C','2.0 °C','-18.0 °C','45 %','Geschlossen'])
-                eq(page.locator('.online-text').inner_text(),'Verbunden');assert 'is-closed' in page.locator('.hfc-card').get_attribute('class')
+                setup();eq(values(),['4.0 °C','2.0 °C','-18.0 °C','45 %','Closed'])
+                eq(page.locator('.online-text').inner_text(),'Connected');eq(page.locator('.title').inner_text(),'Haier Fridge')
+                eq(page.locator('.info-tile small').all_text_contents(),['Fridge · Setpoint','My Zone · Setpoint','Freezer · Setpoint','Humidity','Door'])
+                assert 'is-closed' in page.locator('.hfc-card').get_attribute('class')
             check('NORMAL',normal)
             def opened():
-                page.locator('[data-scenario=open]').click();eq(values()[-1],'Geöffnet')
+                page.locator('[data-scenario=open]').click();eq(values()[-1],'Open')
                 assert 'is-open' in page.locator('.hfc-card').get_attribute('class')
             check('OPEN',opened)
             def missing():
-                setup('missing');eq(values(),['–','–','–','–','Unbekannt'])
-                eq(page.locator('.online-text').inner_text(),'Keine Daten')
+                setup('missing');eq(values(),['–','–','–','–','Unknown'])
+                eq(page.locator('.online-text').inner_text(),'No data')
             check('MISSING',missing)
             def updates():
                 setup();page.evaluate('window.savedTile=fixture.card.querySelector(".info-tile")')
-                page.locator('[data-scenario=updated]').click();eq(values(),['6.0 °C','1.0 °C','-20.0 °C','60 %','Geöffnet'])
+                page.locator('[data-scenario=updated]').click();eq(values(),['6.0 °C','1.0 °C','-20.0 °C','60.5 %','Open'])
                 eq(page.evaluate('savedTile===fixture.card.querySelector(".info-tile")'),True)
             check('UPDATE',updates)
+            def locale():
+                setup();page.locator('#language').select_option('de-DE')
+                eq(page.locator('.title').inner_text(),'Haier Kühlschrank')
+                eq(page.locator('.online-text').inner_text(),'Verbunden')
+                eq(page.locator('.info-tile small').all_text_contents(),['Kühlschrank · Soll','My Zone · Soll','Gefrierfach · Soll','Luftfeuchtigkeit','Tür'])
+                eq(values(),['4,0 °C','2,0 °C','-18,0 °C','45 %','Geschlossen'])
+                page.locator('[data-scenario=updated]').click()
+                eq(values(),['6,0 °C','1,0 °C','-20,0 °C','60,5 %','Geöffnet'])
+                eq(page.locator('.visual-status').inner_text(),'Tür offen')
+                eq(page.locator('.updated-value').inner_text(),'Gerade eben')
+                page.locator('#language').select_option('en')
+                eq(page.locator('.title').inner_text(),'Haier Fridge')
+                page.evaluate("fixture.card.hass=fixture.makeHass('normal','fr-FR')")
+                eq(page.locator('.title').inner_text(),'Haier Fridge')
+                titles=page.evaluate("[customElements.get('haier-fridge-card').getStubConfig({language:'en-US',states:{}}).title,customElements.get('haier-fridge-card').getStubConfig({language:'de-DE',states:{}}).title]")
+                eq(titles,['Haier Fridge','Haier Kühlschrank'])
+                data=page.evaluate('''() => {
+                  const e=customElements.get('haier-fridge-card').getConfigElement();
+                  e.setConfig(fixture.config);e.hass=fixture.makeHass('normal','de');document.body.append(e);
+                  const result={title:e.querySelector('[data-key=title]').getAttribute('label'),model:e.querySelector('[data-key=model]').getAttribute('label'),entities:[...e.querySelectorAll('ha-entity-picker')].map(x=>x.getAttribute('label')),switches:[...e.querySelectorAll('.row span')].map(x=>x.textContent.trim())};e.remove();return result;
+                }''')
+                eq(data,{'title':'Titel','model':'Modell','entities':['Zieltemperatur Kühlschrank','Zieltemperatur My Zone','Zieltemperatur Gefrierschrank','Luftfeuchtigkeit','Tür Kühlschrank'],'switches':['Animationen','Verlauf anzeigen','Letzte Aktualisierung']})
+            check('LOCALE',locale)
             def controls():
                 setup()
                 for i in range(5):

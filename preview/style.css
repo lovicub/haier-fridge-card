@@ -1,0 +1,1 @@
+body{margin:16px;background:#161c27;color:#e2e8f0;font:14px system-ui}h1{font-size:20px}nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}nav button{padding:10px}main{max-width:920px;margin:auto}pre{white-space:pre-wrap;overflow-wrap:anywhere}ha-icon{display:inline-block;width:var(--mdc-icon-size,23px);height:var(--mdc-icon-size,23px);line-height:1;text-align:center}

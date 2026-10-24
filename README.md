@@ -4,6 +4,18 @@ A custom Home Assistant card for refrigerator target temperatures, humidity and 
 
 See [AUDIT.md](AUDIT.md) for the source review and test results, and [ROADMAP.md](ROADMAP.md) for suggested release steps.
 
+## Recommended integration
+
+We recommend [Haier hOn Revived](https://github.com/mmalolepszy/hon-revived) to connect your compatible Haier refrigerator to Home Assistant.
+
+This card displays entities provided by your integration; it does not connect directly to the refrigerator or replace the integration.
+
+1. Install **Haier hOn Revived** by following its [installation instructions](https://github.com/mmalolepszy/hon-revived#installation).
+2. Configure the integration and check that your refrigerator's entities appear in Home Assistant.
+3. Install this card using the instructions below and replace the example entity IDs with your own.
+
+Available entities and features depend on your refrigerator model and the integration's support for it. The card uses temperature setpoint `number` entities, a humidity `sensor` and a door `binary_sensor`. Displayed temperatures are **target temperatures**, not measured internal temperatures.
+
 ## Install manually
 
 1. Download `haier-fridge-card.js` from the [GitHub release](https://github.com/lovicub/haier-fridge-card/releases/tag/v5.0.0-beta.1).

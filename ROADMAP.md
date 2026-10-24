@@ -2,7 +2,7 @@
 
 ## 1. Source review and isolated preview — complete
 
-The original JavaScript is preserved in the first local commit. An offline fixture, a small browser suite and the audit report are in place. The source review and initial checks do not establish compatibility with the full Home Assistant frontend. No GitHub repository or release was created, and no license was selected.
+The original JavaScript is preserved in the first local commit. An offline fixture, a small browser suite and the audit report are in place. The source review and initial checks do not establish compatibility with the full Home Assistant frontend. The initial review preceded publication. Public beta packaging is now prepared for v5.0.0-beta.1; no license has been selected.
 
 ## 2. Portable configuration and editor stability — next
 
@@ -18,6 +18,6 @@ Decide how the card communicates partial availability; validate temperature valu
 
 Prepare user documentation with a fictional YAML example, entity requirements, manual installation, options and compatibility scope. Add a changelog, release version, CI and preview images made from synthetic data. Review Git history and release files for private data. Confirm ownership and rights for the source, artwork and Haier branding; the project owner must choose a license. Decide whether to support HACS only after checking its current requirements.
 
-## 5. Publish as a separate, explicitly authorized task
+## 5. Public beta publication — authorized
 
-After review and explicit authorization, create or connect the GitHub repository and push the approved commits. Prepare a release tag and GitHub release as a separate step. Recheck the published files, version and required checks first. Nothing has been published yet.
+The owner authorized GitHub publication on 2026-10-24. Publish v5.0.0-beta.1 with the standalone JavaScript asset and disclose the remaining compatibility limitations. The items above remain follow-up work for a stable release.

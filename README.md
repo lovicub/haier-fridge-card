@@ -1,8 +1,35 @@
 # Haier Fridge Premium Card
 
-A custom Home Assistant card for refrigerator target temperatures, humidity and door status. The card version declared in the source is **5.0.0**. Its built-in labels follow the Home Assistant language: German when the interface language is German, English otherwise. The original source is preserved in the first local Git commit.
+A custom Home Assistant card for refrigerator target temperatures, humidity and door status. The card version declared in the source is **5.0.0-beta.1**. Its built-in labels follow the Home Assistant language: German when the interface language is German, English otherwise. The original source is preserved in the first local Git commit.
 
 See [AUDIT.md](AUDIT.md) for the source review and test results, and [ROADMAP.md](ROADMAP.md) for suggested release steps.
+
+## Install manually
+
+1. Download `haier-fridge-card.js` from the [GitHub release](https://github.com/lovicub/haier-fridge-card/releases/tag/v5.0.0-beta.1).
+2. Copy it to `/config/www/haier-fridge-card.js` in Home Assistant. Create `www` if needed.
+3. Add a dashboard resource with URL `/local/haier-fridge-card.js?v=5.0.0-beta.1` and type **JavaScript Module**. Reload the browser after adding or updating it.
+4. Add a manual dashboard card using your own entity IDs:
+
+```yaml
+type: custom:haier-fridge-card
+title: Kitchen fridge
+model: My refrigerator
+entity_fridge_target: number.demo_fridge
+entity_my_zone_target: number.demo_my_zone
+entity_freezer_target: number.demo_freezer
+entity_humidity: sensor.demo_humidity
+entity_door_fridge: binary_sensor.demo_door
+show_history_button: true
+show_last_updated: true
+animate: true
+```
+
+The example entities are fictional. Select three temperature setpoint `number` entities, a humidity `sensor` and a door `binary_sensor` (`on` means open). Temperatures shown are setpoints. Clicking a tile opens Home Assistant entity details; the history button opens history for the fridge target entity.
+
+`title` and `model` customize the heading. All three switches in the example default to `true`. Built-in labels use German for a German HA interface and English otherwise. Configure entity IDs explicitly: automatic suggestions currently assume model HDPW5620ANPD and German entity names.
+
+This beta has passed isolated Chromium checks at desktop and mobile viewport sizes. Full Home Assistant frontend compatibility and the visual editor lifecycle remain unverified; YAML configuration is recommended for this beta. HACS installation has not been validated. See [AUDIT.md](AUDIT.md) for details. No license has been selected.
 
 ## Isolated preview
 

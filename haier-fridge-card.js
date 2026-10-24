@@ -32,7 +32,7 @@ const HFC_TRANSLATIONS = {
 };
 
 /*
- * Haier Fridge Premium Card v5.0.0
+ * Haier Fridge Premium Card v5.0.0-beta.1
  * Vector edition. Self-contained SVG/CSS; no external assets.
  */
 class HaierFridgeCard extends HTMLElement {
@@ -629,7 +629,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c HAIER FRIDGE PREMIUM %c v5.0.0 ',
+  '%c HAIER FRIDGE PREMIUM %c v5.0.0-beta.1 ',
   'color:#8b6cff;font-weight:700',
   'color:#fff;background:#111629;padding:2px 7px;border-radius:4px',
 );

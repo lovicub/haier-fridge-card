@@ -51,4 +51,4 @@ No real Home Assistant frontend, Haier integration, device, service, `hass-more-
 - Verify behavior against the intended Home Assistant versions and integrations before claiming compatibility.
 - Confirm code/artwork/brand rights and have the project owner choose a license. No license has been added.
 
-No GitHub repository was created or pushed, and no release was made.
+This audit was completed before publication. The owner subsequently authorized publication of v5.0.0-beta.1 with the limitations above disclosed.

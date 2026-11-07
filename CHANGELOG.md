@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.1 — 2026-11-07
+
+- Publish the deployed premium SVG design with responsive layouts and live entity readouts.
+- Reflect the upper refrigerator door sensor in the illustration.
+- Add independent, restartable five-second UI-only previews for the upper and freezer doors.
+- Provide the HACS manifest, installation guide and MIT license.
+- This deployed version uses German UI labels; the English/German beta materials are archived under `archive/v5.0.0-beta.1/`.
+
 ## 5.0.0-beta.1 — 2026-10-24
 
 First public prerelease of Haier Fridge Premium Card.

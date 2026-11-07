@@ -14,7 +14,9 @@ This community custom card has been deployed and tested in Home Assistant. It is
 
 ## Screenshot
 
-*Screenshot placeholder — a dashboard screenshot will be added here.*
+
+<img width="469" height="578" alt="image" src="https://github.com/user-attachments/assets/f1c4b436-c7ab-46dd-9a52-e2e5c1075de3" />
+<img width="462" height="567" alt="image" src="https://github.com/user-attachments/assets/b6b747b5-25fd-435c-83f2-4abd0e2140f5" />
 
 ## Installation
 
